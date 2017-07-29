@@ -1,58 +1,54 @@
 <?php
 
-namespace Barryvdh\TranslationManager;
+namespace Moonshiner\SnippetManager;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
-use Barryvdh\TranslationManager\Models\Translation;
-use Illuminate\Support\Collection;
 
+use Illuminate\Support\Collection;
+use Moonshiner\SnippetManager\Models\Snippet;
+use Artisan;
+use Cache;
 class Controller extends BaseController
 {
-    /** @var \Barryvdh\TranslationManager\Manager  */
+    /** @var \Moonshiner\SnippetManager\SnippetManager  */
     protected $manager;
-    public function __construct(Manager $manager)
+    public function __construct(SnippetManager $manager)
     {
         $this->manager = $manager;
     }
-    public function getIndex($group = null)
+
+    public function getView()
     {
-        $locales = $this->loadLocales();
-        $groups = Translation::groupBy('group');
-        $excludedGroups = $this->manager->getConfig('exclude_groups');
-        if ($excludedGroups) {
-            $groups->whereNotIn('group', $excludedGroups);
-        }
-        $groups = $groups->select('group')->get()->pluck('group', 'group');
-        if ($groups instanceof Collection) {
-            $groups = $groups->all();
-        }
-        $groups = [''=>'Choose a group'] + $groups;
-        $numChanged = Translation::where('group', $group)->where('status', Translation::STATUS_CHANGED)->count();
-        $allTranslations = Translation::where('group', $group)->orderBy('key', 'asc')->get();
-        $numTranslations = count($allTranslations);
-        $translations = [];
-        foreach ($allTranslations as $translation) {
-            $translations[$translation->key][$translation->locale] = $translation;
-        }
-        return view('translation-manager::index')
-            ->with('translations', $translations)
-            ->with('locales', $locales)
-            ->with('groups', $groups)
-            ->with('group', $group)
-            ->with('numTranslations', $numTranslations)
-            ->with('numChanged', $numChanged)
-            ->with('editUrl', action('\Barryvdh\TranslationManager\Controller@postEdit', [$group]))
-            ->with('deleteEnabled', $this->manager->getConfig('delete_enabled'));
+       return view('snippet-manager::index');
     }
-    public function getView($group = null)
-    {
-        return $this->getIndex($group);
+    public function index(){
+        $allTranslations = Snippet::take(20)->get();
+
+        return $allTranslations;
+    }
+
+    public function search(){
+        $allTranslations = Snippet::where('value', 'LIKE', '%'.request()->input('s', '').'%')->orWhere('key', 'LIKE', '%'.request()->input('s', '').'%')->get();
+
+        return $allTranslations;
+    }
+    public function update(Request $request, Snippet $snippet){
+
+        $snippet->value = $request->input('value', '');
+        $path = [$snippet->namespace, $snippet->key];
+
+        $storeKey = implode('/', $path);
+
+        Cache::put($storeKey, $snippet->value);
+        $this->clearCache();
+
+        $snippet->save();
     }
     protected function loadLocales()
     {
         //Set the default locale as the first one.
-        $locales = Translation::groupBy('locale')
+        $locales = Snippet::groupBy('locale')
             ->select('locale')
             ->get()
             ->pluck('locale');
@@ -62,55 +58,8 @@ class Controller extends BaseController
         $locales = array_merge([config('app.locale')], $locales);
         return array_unique($locales);
     }
-    public function postAdd($group = null)
-    {
-        $keys = explode("\n", request()->get('keys'));
-        foreach ($keys as $key) {
-            $key = trim($key);
-            if ($group && $key) {
-                $this->manager->missingKey('*', $group, $key);
-            }
-        }
-        return redirect()->back();
-    }
-    public function postEdit($group = null)
-    {
-        if (!in_array($group, $this->manager->getConfig('exclude_groups'))) {
-            $name = request()->get('name');
-            $value = request()->get('value');
-            list($locale, $key) = explode('|', $name, 2);
-            $translation = Translation::firstOrNew([
-                'locale' => $locale,
-                'group' => $group,
-                'key' => $key,
-            ]);
-            $translation->value = (string) $value ?: null;
-            $translation->status = Translation::STATUS_CHANGED;
-            $translation->save();
-            return array('status' => 'ok');
-        }
-    }
-    public function postDelete($group = null, $key)
-    {
-        if (!in_array($group, $this->manager->getConfig('exclude_groups')) && $this->manager->getConfig('delete_enabled')) {
-            Translation::where('group', $group)->where('key', $key)->delete();
-            return ['status' => 'ok'];
-        }
-    }
-    public function postImport(Request $request)
-    {
-        $replace = $request->get('replace', false);
-        $counter = $this->manager->importTranslations($replace);
-        return ['status' => 'ok', 'counter' => $counter];
-    }
-    public function postFind()
-    {
-        $numFound = $this->manager->findTranslations();
-        return ['status' => 'ok', 'counter' => (int) $numFound];
-    }
-    public function postPublish($group = null)
-    {
-        $this->manager->exportTranslations($group);
-        return ['status' => 'ok'];
+
+    public function clearCache(){
+        Artisan::call('view:clear');
     }
 }
