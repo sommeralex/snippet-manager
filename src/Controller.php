@@ -23,7 +23,7 @@ class Controller extends BaseController
        return view('snippet-manager::index');
     }
     public function index(){
-        $allTranslations = Snippet::take(20)->get();
+        $allTranslations = Snippet::take(10)->get();
 
         return $allTranslations;
     }

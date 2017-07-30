@@ -36,7 +36,7 @@ class SnippetManagerServiceProvider extends ServiceProvider
         });
 
         Blade::directive('s', function ($arguments) {
-             return "<?php App::make('snippet.manager')->get({$arguments}) ?>";
+             return "<?php echo App::make('snippet.manager')->get({$arguments}) ?>";
         });
     }
 

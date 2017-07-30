@@ -7,11 +7,11 @@
             <div class="snippet__key">
                 {{item.key}}
             </div>
+            <div class="snippet__preview">
+                {{item.value | truncate(40)}}
+            </div>
             <div class="snippet__locale">
                 {{item.locale}}
-            </div>
-            <div class="snippet__preview">
-                {{item.value | truncate(20)}}
             </div>
             <div class="snippet__actions">
                 <div class="snippet__toggle" @click="toggle">Show</div>
@@ -31,7 +31,8 @@ export default {
   props:['item', 'prefix'],
     computed:{
         editorId(){
-            return `${this.item.locale}-${this.item.namespace}-${this.item.key}`;
+            let namespace = this.item.namespace.replace(/\//g, '-');
+            return `${this.item.locale}-${namespace}-${this.item.key}`;
         }
     },
     mounted(){
@@ -43,7 +44,7 @@ export default {
    methods: {
    	    toggle(){
             if(!this.showEditor){
-                this.showEditor = true; 
+                this.showEditor = true;
             }
             console.log(this.prefix);
             this.editorToggleState = !this.editorToggleState;
@@ -51,12 +52,12 @@ export default {
         save(){
             axios.put(`${this.prefix}/${this.item.id}`, this.item)
                 .then((response) => {
-                    console.log('success');
+                    alert('Saved');
                 });
         },
         updateValue(value){
-            this.showSave = true; 
-            this.item.value = value; 
+            this.showSave = true;
+            this.item.value = value;
         }
    },
    data(){
@@ -75,21 +76,31 @@ export default {
         align-items: center;
         background-color: #f5f5f5;
         padding: 10px 10px;
-        justify-content: space-between;
     }
-
+    .snippet__namespace {
+        flex: 0 0 230px;
+        color: #b7b7b7;
+    }
     .snippet__toggle {
         padding: 5px 10px;
         border: 2px solid #b7f17e;
         cursor: pointer;
     }
-
+    .snippet__locale {
+        flex: 0 0 100px;
+    }
+    .snippet__preview {
+        flex: 1;
+    }
     .snippet__key {
+        flex: 0 0 180px;
         height: 100%;
+        word-wrap: break-word;
         font-weight: bold;
         padding: 5px 10px;
         background-color: #f5f5f5;
         /* color: #fff; */
+        word-break: break-all;
     }
 
     .snippet__actions {

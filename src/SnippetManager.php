@@ -40,7 +40,7 @@ class SnippetManager
 		    return $manager->fetch($namespace, $key, $default);
 		});
 
-		echo $snippet;
+		return $snippet;
 	}
 
     public function fetch($namespace, $key, $default = ''){

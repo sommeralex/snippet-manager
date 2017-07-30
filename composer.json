@@ -10,9 +10,9 @@
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": ":author_email",
-            "homepage": ":author_website",
+            "name": "Fabian Hippmann",
+            "email": "office@moonshiner.at",
+            "homepage": "moonshiner.at",
             "role": "Developer"
         }
     ],
@@ -27,7 +27,10 @@
     "autoload": {
         "psr-4": {
             "Moonshiner\\SnippetManager\\": "src"
-        }
+        },
+        "files": [
+            "src/global.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -51,8 +51,7 @@ export default {
       forced_root_block : "", //!important
       force_br_newlines : true, //!important
       force_p_newlines : false, //!important
-      valid_elements: "br", //!important
-      paste_as_text: true, //!important
+
         toolbar: 'undo redo | eyecatcher | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code',
        menubar: false,
         image_advtab: true,
