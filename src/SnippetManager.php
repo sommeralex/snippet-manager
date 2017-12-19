@@ -12,7 +12,7 @@ use DB;
 class SnippetManager
 {
 	private $namespace = "";
-
+    protected $app;
     public function __construct(Application $app)
     {
         $this->app = $app;
@@ -31,7 +31,7 @@ class SnippetManager
             $this->namespace = $namespace;
         }
 
-        $path = [$this->namespace, $key];
+        $path = [$this->app['config']['translation-manager'], $this->namespace, $key];
 
 		$storeKey = implode('/', $path);
         $manager = $this;
@@ -48,6 +48,7 @@ class SnippetManager
         if($namespace != ''){
             $query->where('namespace', $namespace);
         }
+        $query->where('locale', $this->app['config']['app.locale']);
         $snippetValue = $query->pluck('value')->first();
         if(!$snippetValue){
             return $this->missingSnippet($namespace, $key, $default);

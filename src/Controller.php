@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Collection;
 use Moonshiner\SnippetManager\Models\Snippet;
 use Artisan;
+use App;
 use Cache;
 class Controller extends BaseController
 {
@@ -36,7 +37,7 @@ class Controller extends BaseController
     public function update(Request $request, Snippet $snippet){
 
         $snippet->value = $request->input('value', '');
-        $path = [$snippet->namespace, $snippet->key];
+        $path = [App::getLocale(),$snippet->namespace, $snippet->key];
 
         $storeKey = implode('/', $path);
 
